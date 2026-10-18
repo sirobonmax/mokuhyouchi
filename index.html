@@ -2,370 +2,268 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>佐世保5番街店 定時報告ツール(スマホ最適化版)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>当日目標値入力ツール</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Noto Sans JP -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* 全体設定：スマホで文字が小さくなりすぎないように調整 */
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background: #f4f4f4; 
-            padding: 10px; 
-            font-size: 16px; /* スマホで見やすい基本サイズ */
-            color: #333; 
-            margin-bottom: 320px; /* 下部固定エリアのスペース */
-            line-height: 1.4;
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
         }
-        
-        .section { 
-            background: white; 
-            padding: 15px; 
-            margin-bottom: 12px; 
-            border-radius: 12px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08); 
+        /* スピナー（数値入力の矢印）を非表示にする */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
-        
-        h3 { 
-            border-left: 5px solid #bf0000; 
-            padding-left: 10px; 
-            margin: 0 0 12px 0; 
-            font-size: 16px; 
-            color: #bf0000; 
-        }
-
-        .item { 
-            display: flex; 
-            flex-direction: column; 
-            padding: 12px 0; 
-            border-bottom: 1px solid #eee; 
-        }
-        
-        .item-label { 
-            font-weight: bold; 
-            margin-bottom: 8px; 
-            font-size: 14px; 
-        }
-
-        /* コントロール部分：スマホで押しやすいサイズに拡大 */
-        .controls { 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            gap: 10px; 
-        }
-        
-        .counter-group { 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-        }
-
-        /* ボタンを大きく（最低44pxはAppleの推奨サイズ） */
-        button { 
-            min-width: 48px; 
-            height: 48px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            border: 1px solid #ccc; 
-            background: #eee; 
-            border-radius: 8px; 
-            font-size: 20px;
-            touch-action: manipulation; /* 連打時のズーム防止 */
-        }
-
-        .count-val { 
-            min-width: 35px; 
-            text-align: center; 
-            font-weight: bold; 
-            font-size: 22px; 
-            color: #bf0000; 
-        }
-
-        /* 入力フォーム：タップしやすい高さに */
-        .total-input { 
-            width: 70px; 
-            height: 40px; 
-            text-align: center; 
-            border: 1px solid #ccc; 
-            border-radius: 6px; 
-            font-size: 16px; 
-            background: #fffde7; 
-            -webkit-appearance: none; /* iOSの影を消す */
-        }
-
-        /* レポート表示エリア（下部固定） */
-        #preview-area { 
-            position: fixed; 
-            bottom: 0; 
-            left: 0; 
-            right: 0; 
-            background: #fff; 
-            padding: 15px; 
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.15); 
-            z-index: 100; 
-            border-top: 4px solid #bf0000;
-            border-radius: 15px 15px 0 0;
-        }
-
-        textarea { 
-            width: 100%; 
-            height: 100px; 
-            margin-top: 8px; 
-            font-size: 14px; 
-            border: 1px solid #ccc; 
-            border-radius: 8px; 
-            padding: 8px; 
-            box-sizing: border-box;
-            background: #f9f9f9;
-        }
-
-        .btn-main { 
-            width: 100%; 
-            height: 55px; 
-            background: #bf0000; 
-            color: white; 
-            border: none; 
-            border-radius: 10px; 
-            font-weight: bold; 
-            font-size: 18px; 
-        }
-
-        .btn-sub { 
-            width: 100%; 
-            height: 50px; 
-            background: #444; 
-            color: white; 
-            border: none; 
-            border-radius: 10px; 
-            font-weight: bold; 
-            font-size: 16px;
-            margin-top: 8px;
-        }
-
-        /* 報告タイミングのボタン選択 */
-        .report-type { 
-            display: flex; 
-            gap: 8px; 
-            margin-bottom: 5px; 
-        }
-        .report-type label { 
-            flex: 1; 
-            text-align: center; 
-            padding: 12px 5px; 
-            border: 2px solid #ddd; 
-            border-radius: 10px; 
-            background: white; 
-            cursor: pointer; 
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .report-type input { display: none; }
-        .active-report { 
-            background: #ffebeb !important; 
-            border-color: #bf0000 !important; 
-            font-weight: bold; 
-            color: #bf0000; 
-        }
-
-        /* 累計のリセットボタンなど */
-        .import-btn {
-            width: 100%; 
-            height: 48px; 
-            background: #1976d2; 
-            color: white; 
-            border: none; 
-            border-radius: 8px; 
-            font-weight: bold; 
-            margin-top: 10px;
-            font-size: 15px;
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
     </style>
 </head>
-<body>
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-12">
 
-    <div class="section" style="background: #e3f2fd;">
-        <h3>前日の報告を貼り付け</h3>
-        <textarea id="import_text" placeholder="昨日の報告を貼り付けて「セット」"></textarea>
-        <button class="import-btn" onclick="importFromReport()">前日累計をセット</button>
-    </div>
-
-    <div class="section">
-        <h3>報告タイミング</h3>
-        <div class="report-type">
-            <label id="label_13" class="active-report"><input type="radio" name="rtype" value="13" checked onclick="toggleReport(13)">13時報告</label>
-            <label id="label_16"><input type="radio" name="rtype" value="16" onclick="toggleReport(16)">16時報告</label>
-            <label id="label_last"><input type="radio" name="rtype" value="last" onclick="toggleReport('last')">終業報告</label>
+    <!-- ヘッダー -->
+    <header class="bg-indigo-600 text-white shadow-md mb-6">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <h1 class="text-xl font-bold flex items-center gap-2">
+                <i class="fa-solid fa-clipboard-check text-indigo-200"></i>
+                当日目標値入力ツール
+            </h1>
+            <span id="currentDateBadge" class="text-xs bg-indigo-700 text-indigo-100 px-3 py-1.5 rounded-full font-medium">
+                <!-- 自動生成日付 -->
+            </span>
         </div>
-    </div>
+    </header>
 
-    <div class="section">
-        <h3>SIM実績</h3>
-        <div id="sim_prev_box" class="item" style="display:none;">
-            <span class="item-label" id="sim_prev_title">直前までの累計枚数</span>
-            <input type="number" id="sim_prev_input" value="0" class="total-input" style="width: 100%; max-width: 120px; background: white;">
-        </div>
-        <div class="item">
-            <span class="item-label" id="sim_label">獲得数</span>
-            <div class="controls">
-                <div class="counter-group">
-                    <button onclick="changeSIM(-1)">-</button>
-                    <span id="sim_now" class="count-val">0</span>
-                    <button onclick="changeSIM(1)">+</button>
+    <!-- メインコンテンツ -->
+    <main class="max-w-4xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- 左カラム：入力フォーム -->
+        <section class="lg:col-span-7 bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80">
+            
+            <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                <h2 class="text-lg font-bold text-slate-700 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-indigo-500"></i>
+                    目標件数の入力
+                </h2>
+                <button id="resetBtn" class="text-xs text-slate-500 hover:text-rose-600 bg-slate-100 hover:bg-rose-50 px-3 py-1.5 rounded-lg font-medium transition-colors duration-150 flex items-center gap-1">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    リセット
+                </button>
+            </div>
+
+            <!-- 日付調整（任意で変更も可能） -->
+            <div class="mb-5 bg-slate-50 p-3 rounded-xl border border-slate-200/60 flex items-center justify-between gap-2">
+                <label for="dateInput" class="text-sm font-semibold text-slate-600 shrink-0">日付:</label>
+                <input type="text" id="dateInput" class="bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 w-full max-w-[200px] text-right focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+
+            <!-- 各種項目一覧 -->
+            <div id="itemsContainer" class="space-y-3">
+                <!-- JSで動的に追加されます -->
+            </div>
+
+        </section>
+
+        <!-- 右カラム：プレビュー＆コピー -->
+        <section class="lg:col-span-5 flex flex-col gap-4">
+            
+            <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80 flex-1 flex flex-col">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-lg font-bold text-slate-700 flex items-center gap-2">
+                        <i class="fa-solid fa-file-lines text-indigo-500"></i>
+                        出力プレビュー
+                    </h2>
+                    <span class="text-xs text-slate-400">リアルタイム更新</span>
+                </div>
+
+                <!-- テキストプレビューエリア -->
+                <div class="relative flex-1">
+                    <textarea id="outputArea" readonly class="w-full h-full min-h-[320px] p-4 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm leading-relaxed text-slate-800 focus:outline-none resize-none select-all"></textarea>
+                </div>
+
+                <!-- コピーボタン -->
+                <button id="copyBtn" class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold py-3.5 px-4 rounded-xl shadow-md shadow-indigo-200 transition-all duration-150 flex items-center justify-center gap-2 text-base">
+                    <i class="fa-regular fa-copy text-lg"></i>
+                    <span>クリップボードにコピー</span>
+                </button>
+
+                <!-- コピー完了通知トースト -->
+                <div id="toast" class="hidden mt-3 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-xl text-center flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-circle-check text-emerald-500 text-base"></i>
+                    クリップボードにコピーしました！
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div id="kpi-container" class="section">
-        <h3>KPI / その他</h3>
-    </div>
+        </section>
 
-    <div id="preview-area">
-        <button class="btn-main" onclick="generateReport()">レポートを作成</button>
-        <textarea id="report_text" readonly placeholder="ここにレポートが生成されます"></textarea>
-        <button class="btn-sub" onclick="copyReport()">コピーする</button>
-    </div>
+    </main>
 
-<script>
-    let Y_DATA = {};
+    <script>
+        // 設定項目一覧データ
+        const itemKeys = [
+            { id: 'sim', label: 'SIM' },
+            { id: 'kakeho', label: '15分カケホ' },
+            { id: 'hogo', label: '最強保護' },
+            { id: 'unext', label: 'U-NEXT' },
+            { id: 'ansapo', label: '安サポ' },
+            { id: 'card', label: 'カード' },
+            { id: 'denki', label: 'でんき' },
+            { id: 'applecare', label: 'applecare' },
+            { id: 'nw', label: 'NW商材' },
+            { id: 'googlereview', label: 'googleレビュー' }
+        ];
 
-    const kpiItems = [
-        { id: 'rpay', name: '楽天ペイ設定数' }, { id: 'enq', name: 'アンケ回答数' },
-        { id: 'unext', name: 'U-NEXT' }, { id: 'hikari', name: 'ひかり' }, { id: 'turbo', name: 'Turbo' },
-        { id: 'c1_sv', name: 'Ｓｖ', p: '１枚目' }, { id: 'c1_pk', name: 'Ｐｋ', p: '１枚目' },
-        { id: 'c1_go', name: 'Ｇｏ', p: '１枚目' }, { id: 'c1_pr', name: 'Ｐｒ', p: '１枚目' },
-        { id: 'c2_sv', name: 'Ｓｖ', p: '２枚目' }, { id: 'c2_pk', name: 'Ｐｋ', p: '２枚目' },
-        { id: 'c2_go', name: 'Ｇｏ', p: '２枚目' }, { id: 'c2_pr', name: 'Ｐｒ', p: '２枚目' },
-        { id: 'kakeho', name: '１５分カケホ' }, { id: 'saikyo', name: '最強保護' },
-        { id: 'hosho', name: '交換保証' }, { id: 'appcare', name: 'AppCare' },
-        { id: 'mochikomi', name: '持込保証' }, { id: 'rusuban', name: '留守番電話' },
-        { id: 'adguard', name: 'ADGuard' }, { id: 'aosbox', name: 'AOSBOX' },
-        { id: 'pika', name: 'ピカプロDX' }, { id: 'reno13a', name: 'Reno13A' }
-    ];
+        // 状態保持
+        const state = {
+            dateStr: '',
+            counts: {}
+        };
 
-    const container = document.getElementById('kpi-container');
-    kpiItems.forEach(item => {
-        Y_DATA[item.id] = 0;
-        const label = item.p ? `(${item.p}) ${item.name}` : item.name;
-        container.innerHTML += `
-            <div class="item">
-                <span class="item-label">${label}</span>
-                <div class="controls">
-                    <div class="counter-group">
-                        <button onclick="changeKPI('${item.id}', -1)">-</button>
-                        <span id="${item.id}_now" class="count-val">0</span>
-                        <button onclick="changeKPI('${item.id}', 1)">+</button>
+        // 初期化処理
+        function init() {
+            // 当日日付のフォーマット（xxxx年yy月zz日）
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            state.dateStr = `${year}年${month}月${day}日`;
+
+            // UI反映
+            document.getElementById('dateInput').value = state.dateStr;
+            document.getElementById('currentDateBadge').textContent = state.dateStr;
+
+            // 各項目の初期化 (0に設定)
+            itemKeys.forEach(item => {
+                state.counts[item.id] = 0;
+            });
+
+            // UIレンダリング
+            renderItems();
+            updateOutput();
+
+            // イベントリスナー設定
+            document.getElementById('dateInput').addEventListener('input', (e) => {
+                state.dateStr = e.target.value;
+                document.getElementById('currentDateBadge').textContent = e.target.value || '日付未設定';
+                updateOutput();
+            });
+
+            document.getElementById('copyBtn').addEventListener('click', copyToClipboard);
+            document.getElementById('resetBtn').addEventListener('click', resetAll);
+        }
+
+        // 入力項目のUI生成
+        function renderItems() {
+            const container = document.getElementById('itemsContainer');
+            container.innerHTML = '';
+
+            itemKeys.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-2.5 bg-slate-50/80 hover:bg-slate-50 rounded-xl border border-slate-200/60 transition-colors';
+                
+                div.innerHTML = `
+                    <span class="font-semibold text-slate-700 text-sm sm:text-base pl-1">
+                        ${item.label}
+                    </span>
+                    <div class="flex items-center gap-2">
+                        <!-- マイナスボタン -->
+                        <button type="button" onclick="adjustCount('${item.id}', -1)" class="w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-white border border-slate-300 active:bg-slate-200 text-slate-600 font-bold text-lg shadow-sm flex items-center justify-center transition-all touch-manipulation select-none">
+                            <i class="fa-solid fa-minus text-xs"></i>
+                        </button>
+                        
+                        <!-- 数値入力 -->
+                        <input type="number" id="input-${item.id}" min="0" value="${state.counts[item.id]}" oninput="onDirectInput('${item.id}', this.value)" class="w-14 sm:w-16 h-10 sm:h-11 border border-slate-300 rounded-lg text-center font-bold text-slate-800 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-inner">
+                        
+                        <!-- プラスボタン -->
+                        <button type="button" onclick="adjustCount('${item.id}', 1)" class="w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200 border border-indigo-200 text-indigo-600 font-bold text-lg shadow-sm flex items-center justify-center transition-all touch-manipulation select-none">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                        </button>
                     </div>
-                    <div><span style="font-size:12px;color:#666;">累計:</span><input type="number" id="${item.id}_total" value="0" class="total-input" readonly></div>
-                </div>
-            </div>`;
-    });
+                `;
+                container.appendChild(div);
+            });
+        }
 
-    // ロジック部分は変更なし
-    function importFromReport() {
-        const text = document.getElementById('import_text').value;
-        if(!text) return alert("貼り付けてください");
-        const lines = text.split('\n');
-        let simVal = 0;
-        const targetLabels = ["終業時点", "16時時点", "13時時点"];
-        for(let label of targetLabels) {
-            const line = lines.find(l => l.includes(label));
-            if(line) {
-                const m = line.match(/時点：\d+件(?:（[^）]+）|／(\d+)件)/);
-                if(m) {
-                    simVal = m[1] || line.match(/時点：(\d+)件/)[1];
-                    if(simVal != 0) break;
-                }
+        // プラス・マイナスボタン処理
+        function adjustCount(id, delta) {
+            let current = state.counts[id] || 0;
+            let updated = current + delta;
+            if (updated < 0) updated = 0; // 0未満にしない
+            
+            state.counts[id] = updated;
+            document.getElementById(`input-${id}`).value = updated;
+            updateOutput();
+        }
+
+        // 数値直接入力処理
+        function onDirectInput(id, value) {
+            let num = parseInt(value, 10);
+            if (isNaN(num) || num < 0) {
+                num = 0;
+            }
+            state.counts[id] = num;
+            updateOutput();
+        }
+
+        // テキスト出力の更新
+        function updateOutput() {
+            const template = `各種当日目標値
+${state.dateStr}
+
+SIM　${state.counts.sim}件
+15分カケホ　${state.counts.kakeho}件
+最強保護　${state.counts.hogo}件
+U-NEXT速　${state.counts.unext}件
+安サポ　${state.counts.ansapo}件
+カード　${state.counts.card}件
+でんき　${state.counts.denki}件
+applecare　${state.counts.applecare}件
+NW商材　${state.counts.nw}件
+googleレビュー　${state.counts.googlereview}件`;
+
+            document.getElementById('outputArea').value = template;
+        }
+
+        // クリップボードへコピー
+        function copyToClipboard() {
+            const textarea = document.getElementById('outputArea');
+            textarea.select();
+            textarea.setSelectionRange(0, 99999); // モバイル向け
+
+            try {
+                // コピー処理実行
+                document.execCommand('copy');
+
+                // トースト通知の表示
+                const toast = document.getElementById('toast');
+                toast.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 2500);
+            } catch (err) {
+                alert('コピーに失敗しました。テキストエリアを長押し・選択してコピーしてください。');
             }
         }
-        document.getElementById('sim_prev_input').value = simVal;
-        const parts = text.split("（内訳：２枚目）");
-        const text1 = parts[0];
-        const text2 = parts[1] || "";
-        kpiItems.forEach(item => {
-            let match;
-            if (item.p === '１枚目') {
-                match = text1.match(new RegExp("↪︎" + item.name + "：\\d+件[／/](\\d+)件"));
-            } else if (item.p === '２枚目') {
-                match = text2.match(new RegExp("↪︎" + item.name + "：\\d+件[／/](\\d+)件"));
-            } else {
-                match = text.match(new RegExp(item.name + "：\\d+件[／/](\\d+)件"));
-            }
-            const val = match ? parseInt(match[1]) : 0;
-            Y_DATA[item.id] = val;
-            document.getElementById(item.id + '_total').value = val;
-            document.getElementById(item.id + '_now').innerText = "0";
-        });
-        alert("累計をセットしました！");
-    }
 
-    function toggleReport(val) {
-        document.getElementById('label_13').className = (val == 13) ? 'active-report' : '';
-        document.getElementById('label_16').className = (val == 16) ? 'active-report' : '';
-        document.getElementById('label_last').className = (val == 'last') ? 'active-report' : '';
-        document.getElementById('sim_prev_box').style.display = (val == 13) ? 'none' : 'block';
-        document.getElementById('sim_prev_title').innerText = (val == 16) ? "13時時点の累計" : "16時時点の累計";
-    }
+        // リセット処理
+        function resetAll() {
+            itemKeys.forEach(item => {
+                state.counts[item.id] = 0;
+                const el = document.getElementById(`input-${item.id}`);
+                if (el) el.value = 0;
+            });
+            updateOutput();
+        }
 
-    function changeSIM(v) {
-        const el = document.getElementById('sim_now');
-        el.innerText = Math.max(0, parseInt(el.innerText) + v);
-    }
-
-    function changeKPI(id, v) {
-        const nowEl = document.getElementById(id + '_now');
-        const totEl = document.getElementById(id + '_total');
-        let nowVal = parseInt(nowEl.innerText);
-        if (v > 0) nowVal++; else if (nowVal > 0) nowVal--;
-        nowEl.innerText = nowVal;
-        totEl.value = Y_DATA[id] + nowVal;
-    }
-
-    function generateReport() {
-        const type = document.querySelector('input[name="rtype"]:checked').value;
-        const sPrev = parseInt(document.getElementById('sim_prev_input').value) || 0;
-        const sNow = parseInt(document.getElementById('sim_now').innerText) || 0;
-        const r = (id) => ({ n: parseInt(document.getElementById(id+'_now').innerText), t: parseInt(document.getElementById(id+'_total').value) });
-
-        let report = `【定時報告／佐世保５番街店】\n\n★ＳＩＭ（〜時まで獲得数／累計）\n\n`;
-        if(type == "13") report += `13時時点：${sNow}件（13時までの回線総販）\n16時時点：0件／0件\n終業時点：0件／0件\n`;
-        else if(type == "16") report += `13時時点：${sPrev}件（13時までの回線総販）\n16時時点：${sNow}件／${sPrev+sNow}件\n終業時点：0件／0件\n`;
-        else report += `16時時点：${sPrev}件（16時までの回線総販）\n終業時点：${sNow}件／${sPrev+sNow}件\n`;
-
-        report += `---------------------------------\n\n★ＫＰＩ（〜時まで獲得数／累計）\n\n`;
-        ['rpay', 'enq', 'unext', 'hikari', 'turbo'].forEach(id => {
-            report += `${kpiItems.find(k=>k.id===id).name}：${r(id).n}件／${r(id).t}件\n`;
-        });
-
-        const cids = ['c1_sv','c1_pk','c1_go','c1_pr','c2_sv','c2_pk','c2_go','c2_pr'];
-        const cardN = cids.reduce((s, id) => s + r(id).n, 0);
-        const cardT = cids.reduce((s, id) => s + r(id).t, 0);
-        report += `カード：${cardN}件／${cardT}件\n（内訳：１枚目）\n`;
-        ['c1_sv','c1_pk','c1_go','c1_pr'].forEach(id => report += `↪︎${kpiItems.find(x=>x.id===id).name}：${r(id).n}件／${r(id).t}件\n`);
-        report += `\n（内訳：２枚目）\n`;
-        ['c2_sv','c2_pk','c2_go','c2_pr'].forEach(id => report += `↪︎${kpiItems.find(x=>x.id===id).name} : ${r(id).n}件／${r(id).t}件\n`);
-
-        const others = ['kakeho','saikyo','hosho','appcare','mochikomi','rusuban'];
-        report += `\n`;
-        others.forEach(id => report += `${kpiItems.find(k=>k.id===id).name}：${r(id).n}件／${r(id).t}件\n`);
-        report += `\n---------------------------------\n\n★3rdPP（〜時まで獲得数／累計）\n\n`;
-        ['adguard','aosbox','pika'].forEach(id => report += `${kpiItems.find(k=>k.id===id).name}：${r(id).n}件／${r(id).t}件\n`);
-        report += `\n---------------------------------\n\n★機種販売（〜時まで獲得数／累計）\n\nReno13A：${r('reno13a').n}件／${r('reno13a').t}件`;
-
-        document.getElementById('report_text').value = report;
-        
-        // 生成時にレポート箇所までスクロール（使いやすさ向上）
-        document.getElementById('report_text').scrollIntoView({behavior: "smooth"});
-    }
-
-    function copyReport() {
-        const t = document.getElementById('report_text');
-        t.select();
-        t.setSelectionRange(0, 99999); // スマホ用
-        document.execCommand('copy');
-        alert("コピー完了！LINE等に貼り付けてください。");
-    }
-</script>
+        // ページロード時初期化
+        window.onload = init;
+    </script>
 </body>
 </html>
